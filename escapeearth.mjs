@@ -1,3 +1,4 @@
+import { count } from 'console';
 import fetch from 'node-fetch';
 
 async function getCurrentChallange() {
@@ -83,7 +84,7 @@ async function findClosestPlanet() {
     return result;
   }
 
-  async function findShortestDayPlanet() {
+async function findShortestDayPlanet() {
     // Get all planets
     console.log("Fetching planetary data...");
     const response = await fetch('https://api.le-systeme-solaire.net/rest/bodies');
@@ -123,10 +124,38 @@ async function findClosestPlanet() {
     return result;
   }
 
+async function countJupiterMoons() {
+    console.log("Fetching Jupiter's moons data...");
+    const response = await fetch('https://api.le-systeme-solaire.net/rest/bodies');
+    const data = await response.json();
+    
+    const jupiterMoons = data.bodies.filter(body => 
+      body.aroundPlanet && body.aroundPlanet.planet === 'jupiter');
+    
+    console.log(`Number of Jupiter's moons: ${jupiterMoons.length}`);
+    
+    // Submit answer
+    console.log("Submitting answer...");
+    const submitResponse = await fetch('https://spacescavanger.onrender.com/answer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        answer: jupiterMoons.length.toString(),
+        player: 'alexandern@uia.no'
+      })
+    });
+    
+    const result = await submitResponse.json();
+    console.log("Response:", result);
+    return result;
+  }
+
+
 async function solveOnebyone() {
     await getCurrentChallange();
     await getSunRadiusPin();
     await findClosestPlanet();
     await findShortestDayPlanet();
+    await countJupiterMoons();
 }
 solveOnebyone();
