@@ -1,9 +1,13 @@
 import fetch from 'node-fetch';
 
-const response = await fetch("https://spacescavanger.onrender.com/start?player=alexandern@uia.no", {method: "GET"});
-const data = await response.json();
+async function getCurrentChallange() {
+    const response = await fetch("https://spacescavanger.onrender.com/start?player=alexandern@uia.no", {method: "GET"});
+    const data = await response.json();
+    console.log("Current challenge");
+    console.log(data);
+    return data;
+}
 
-console.log(data);
 
 async function getSunRadiusPin() {
     // Getting the Sun data from the API
@@ -33,9 +37,8 @@ async function getSunRadiusPin() {
       
     const result = await submitResponse.json();
     console.log("Response:", result);
-    
+    return result;
     };
-  getSunRadiusPin();
 
 async function findClosestPlanet() {
     // Get all planets
@@ -77,5 +80,53 @@ async function findClosestPlanet() {
     
     const result = await submitResponse.json();
     console.log("Response:", result);
+    return result;
   }
-  findClosestPlanet();
+
+  async function findShortestDayPlanet() {
+    // Get all planets
+    console.log("Fetching planetary data...");
+    const response = await fetch('https://api.le-systeme-solaire.net/rest/bodies');
+    const data = await response.json();
+    
+    // Find planet with shortest day
+    let quickest = null;
+    let shortestTime = Infinity;
+    
+    data.bodies.forEach(body => {
+      if (body.isPlanet) {
+        const dayLength = Math.abs(body.sideralRotation);
+        console.log(`${body.englishName}: ${dayLength} hours`);
+        
+        if (dayLength > 0 && dayLength < shortestTime) {
+          shortestTime = dayLength;
+          quickest = body.englishName;
+        }
+      }
+    });
+    
+    console.log(`\nPlanet with shortest day: ${quickest} (${shortestTime} hours)`);
+    
+    // Submit answer
+    console.log("Submitting answer...");
+    const submitResponse = await fetch('https://spacescavanger.onrender.com/answer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        answer: quickest,
+        player: 'alexandern@uia.no'
+      })
+    });
+    
+    const result = await submitResponse.json();
+    console.log("Response:", result);
+    return result;
+  }
+
+async function solveOnebyone() {
+    await getCurrentChallange();
+    await getSunRadiusPin();
+    await findClosestPlanet();
+    await findShortestDayPlanet();
+}
+solveOnebyone();
