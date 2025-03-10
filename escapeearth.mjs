@@ -150,6 +150,54 @@ async function countJupiterMoons() {
     return result;
   }
 
+  async function findLargestJupiterMoon() {
+    console.log("Finding Jupiter's largest moon...");
+    
+    // Fetch all solar system bodies
+    const response = await fetch('https://api.le-systeme-solaire.net/rest/bodies');
+    const data = await response.json();
+    
+    // Filter for Jupiter's moons
+    const jupiterMoons = data.bodies.filter(body => 
+      body.aroundPlanet && 
+      body.aroundPlanet.planet === 'jupiter'
+    );
+    
+    console.log(`Jupiter has ${jupiterMoons.length} moons in the database`);
+    
+    // Find the largest moon by mean radius
+    let largestMoon = null;
+    let largestRadius = 0;
+    
+    jupiterMoons.forEach(moon => {
+      // Skip if the moon doesn't have radius data
+      if (moon.meanRadius === undefined) return;
+      
+      if (moon.meanRadius > largestRadius) {
+        largestRadius = moon.meanRadius;
+        largestMoon = moon;
+      }
+    });
+    
+    console.log(`\nJupiter's largest moon is: ${largestMoon.englishName}`);
+    console.log(`Mean radius: ${largestMoon.meanRadius} km`);
+    
+    // Submit the answer
+    console.log("\nSubmitting answer...");
+    const submitResponse = await fetch('https://spacescavanger.onrender.com/answer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        answer: largestMoon.englishName,
+        player: 'alexandern@uia.no'
+      })
+    });
+    
+    const result = await submitResponse.json();
+    console.log("Response:", result);
+    return result;
+  }  
+
 
 async function solveOnebyone() {
     await getCurrentChallange();
@@ -157,5 +205,6 @@ async function solveOnebyone() {
     await findClosestPlanet();
     await findShortestDayPlanet();
     await countJupiterMoons();
+    await findLargestJupiterMoon();
 }
 solveOnebyone();
